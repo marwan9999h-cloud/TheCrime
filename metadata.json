@@ -1,0 +1,6 @@
+{
+  "name": "Crime",
+  "description": "A social deduction mystery game for 4–6 players featuring secret objectives, evidence analysis, and voting dynamics.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

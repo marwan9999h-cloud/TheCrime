@@ -1,0 +1,160 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --font-sans: 'Plus Jakarta Sans', 'Tajawal', system-ui, sans-serif;
+    --font-serif: 'Cinzel', 'Amiri', serif;
+    --font-mono: 'Courier Prime', monospace;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background-color: #121316;
+    color: #f1f2f5;
+  }
+
+  h1, h2, h3, .font-heading {
+    font-family: var(--font-serif);
+    letter-spacing: -0.01em;
+  }
+
+  .font-typewriter {
+    font-family: var(--font-mono);
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #141518;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #2b2e35;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #40444f;
+}
+
+/* Custom Crime Dossier Cards & Panels */
+.noir-card {
+  background: rgba(24, 25, 29, 0.95);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 20px -4px rgba(0, 0, 0, 0.35);
+}
+
+.noir-card-red {
+  background: rgba(30, 20, 23, 0.95);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(225, 29, 72, 0.25);
+  box-shadow: 0 4px 20px -4px rgba(225, 29, 72, 0.2);
+}
+
+.noir-card-gold {
+  background: rgba(30, 26, 20, 0.95);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  box-shadow: 0 4px 20px -4px rgba(245, 158, 11, 0.15);
+}
+
+.classified-stamp {
+  font-family: 'Courier Prime', monospace;
+  font-weight: 700;
+  text-transform: uppercase;
+  border: 2px solid currentColor;
+  padding: 0.25rem 0.65rem;
+  display: inline-block;
+  transform: rotate(-3deg);
+  letter-spacing: 0.12em;
+  border-radius: 4px;
+}
+
+.scanline {
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0),
+    rgba(255, 255, 255, 0) 50%,
+    rgba(0, 0, 0, 0.15) 50%,
+    rgba(0, 0, 0, 0.15)
+  );
+  background-size: 100% 4px;
+}
+
+.red-vignette {
+  box-shadow: inset 0 0 80px rgba(225, 29, 72, 0.12);
+}
+
+.dark-vignette {
+  box-shadow: inset 0 0 80px rgba(0, 0, 0, 0.45);
+}
+
+@keyframes pulseGlow {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.8; }
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 3s infinite ease-in-out;
+}
+
+@keyframes flicker {
+  0%, 100% { opacity: 1; }
+  41% { opacity: 1; }
+  42% { opacity: 0.4; }
+  43% { opacity: 0.8; }
+  45% { opacity: 0.3; }
+  46% { opacity: 1; }
+}
+
+.animate-flicker {
+  animation: flicker 6s infinite;
+}
+
+/* Subtle Retro CRT Screen Flicker Overlay */
+.crt-overlay {
+  position: relative;
+}
+
+.crt-overlay::before {
+  content: " ";
+  display: block;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.008), rgba(0, 255, 0, 0.004), rgba(0, 0, 255, 0.008));
+  z-index: 999;
+  background-size: 100% 3px, 6px 100%;
+  pointer-events: none;
+  opacity: 0.25;
+}
+
+.crt-overlay::after {
+  content: " ";
+  display: block;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background: rgba(18, 16, 16, 0.01);
+  opacity: 0;
+  z-index: 999;
+  pointer-events: none;
+  animation: crtFlicker 0.2s infinite;
+}
+
+@keyframes crtFlicker {
+  0% { opacity: 0.004; }
+  50% { opacity: 0.012; }
+  100% { opacity: 0.006; }
+}
+
