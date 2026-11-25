@@ -11,6 +11,19 @@ export default defineConfig(() => {
         '@': path.resolve(__dirname, '.'),
       },
     },
+    build: {
+      rollupOptions: {
+        output: {
+          // Split heavy vendors into their own long-lived chunks so the app code
+          // stays small and repeat visits reuse the cached vendor files.
+          manualChunks: {
+            react: ['react', 'react-dom'],
+            motion: ['motion'],
+            icons: ['lucide-react'],
+          },
+        },
+      },
+    },
     server: {
       // HMR is disabled in AI Studio via DISABLE_HMR env var.
       // Do not modifyâfile watching is disabled to prevent flickering during agent edits.
