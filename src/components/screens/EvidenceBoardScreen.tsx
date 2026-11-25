@@ -34,8 +34,37 @@ export const EvidenceBoardScreen: React.FC = () => {
   const [selectedEvidenceForModal, setSelectedEvidenceForModal] = useState<EvidenceItem | null>(null);
 
   // Discussion Timer State
-  const [timeLeft, setTimeLeft] = useState<number>(settings.discussionTimeLimitMinutes * 60);
-  const [isTimerRunning, setIsTimerRunning] = useState<boolean>(true);
+  const timerStorageKey = 'CRIME_DISCUSSION_TIMER';
+  const readSavedTimer = () => {
+    try {
+      return JSON.parse(localStorage.getItem(timerStorageKey) || 'null');
+    } catch (e) {
+      return null;
+    }
+  };
+  const [timeLeft, setTimeLeft] = useState<number>(() => {
+    const full = settings.discussionTimeLimitMinutes * 60;
+    try {
+      const saved = readSavedTimer();
+      if (
+        saved &&
+        saved.caseId === state.caseData?.id &&
+        saved.round === state.roundState.currentRound &&
+        typeof saved.left === 'number' &&
+        saved.left > 0 &&
+        saved.left <= full
+      ) {
+        return saved.left;
+      }
+    } catch (e) {
+      // ignore corrupted timer state
+    }
+    return full;
+  });
+  const [isTimerRunning, setIsTimerRunning] = useState<boolean>(() => {
+    const saved = readSavedTimer();
+    return !(saved && saved.caseId === state.caseData?.id && saved.round === state.roundState.currentRound && saved.paused === true);
+  });
 
   // Detective Notepad Drawer
   const [isNotepadOpen, setIsNotepadOpen] = useState(false);
@@ -55,6 +84,18 @@ export const EvidenceBoardScreen: React.FC = () => {
     }
     return () => clearInterval(interval);
   }, [isTimerRunning, timeLeft]);
+
+  // Persist remaining discussion time so a refresh does not reset it
+  useEffect(() => {
+    try {
+      localStorage.setItem(
+        timerStorageKey,
+        JSON.stringify({ caseId: state.caseData?.id, round: state.roundState.currentRound, left: timeLeft, paused: !isTimerRunning })
+      );
+    } catch (e) {
+      // ignore storage errors
+    }
+  }, [timeLeft, isTimerRunning]);
 
   useEffect(() => {
     if (timeLeft === 0 && isTimerRunning) {
@@ -113,7 +154,7 @@ export const EvidenceBoardScreen: React.FC = () => {
         </div>
 
         {/* Discussion Timer & Actions */}
-        <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto border-t sm:border-t-0 border-white/[0.06] pt-3 sm:pt-0">
+        <div className="flex flex-wrap items-center justify-between sm:justify-end gap-3 w-full sm:w-auto border-t sm:border-t-0 border-white/[0.06] pt-3 sm:pt-0">
           {/* Discussion Timer */}
           <div className="flex items-center gap-2.5 bg-[#17181d] border border-white/[0.08] px-3.5 py-1.5 rounded-xl shadow-xs">
             <Clock className={`w-4 h-4 ${timeLeft <= 30 ? 'text-rose-400 animate-pulse' : 'text-zinc-400'}`} />
@@ -152,7 +193,7 @@ export const EvidenceBoardScreen: React.FC = () => {
           </div>
 
           {/* Action CTAs */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0 max-w-full">
             <button
               type="button"
               onClick={() => {
