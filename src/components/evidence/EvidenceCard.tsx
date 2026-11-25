@@ -25,6 +25,14 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
+// Player-facing evidence number (never show raw internal ids like 01_AUTOPSY_REPORT)
+const formatEvidenceNum = (id: string): string => {
+  const parts = id.replace(/^ev_/, '').split('_');
+  if (parts.length > 1 && /^\d{1,2}$/.test(parts[0])) return parts[0].padStart(2, '0');
+  const nums = parts.filter((p) => /^\d+$/.test(p));
+  return nums.slice(-2).join('-');
+};
+
 export interface EvidenceBubbleCardProps {
   evidence: EvidenceItem;
   onClick: () => void;
@@ -53,7 +61,7 @@ export const getEvidenceTypeLabel = (type: EvidenceItem['type']) => {
 
 export const EvidenceBubbleCard: React.FC<EvidenceBubbleCardProps> = ({ evidence, onClick }) => {
   const typeInfo = getEvidenceTypeLabel(evidence.type);
-  const evidenceNum = evidence.id.replace('ev_', '').toUpperCase();
+  const evidenceNum = formatEvidenceNum(evidence.id);
 
   return (
     <div
@@ -275,7 +283,7 @@ const PhotoView: React.FC<{ evidence: EvidenceItem }> = ({ evidence }) => {
 };
 
 const DocumentView: React.FC<{ evidence: EvidenceItem }> = ({ evidence }) => {
-  const evidenceNum = evidence.id.replace('ev_', '').toUpperCase();
+  const evidenceNum = formatEvidenceNum(evidence.id);
 
   return (
     <div className="space-y-3 font-sans">
@@ -380,7 +388,7 @@ export interface EvidenceDetailModalProps {
 
 export const EvidenceDetailModal: React.FC<EvidenceDetailModalProps> = ({ evidence, onClose }) => {
   const typeInfo = getEvidenceTypeLabel(evidence.type);
-  const evidenceNum = evidence.id.replace('ev_', '').toUpperCase();
+  const evidenceNum = formatEvidenceNum(evidence.id);
 
   const renderTypeView = () => {
     switch (evidence.type) {
