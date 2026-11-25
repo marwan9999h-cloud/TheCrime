@@ -33,15 +33,6 @@ export const EndingRevealScreen: React.FC = () => {
   // Stage 6: Performance Report & Archive Actions
   const [currentStage, setCurrentStage] = useState<number>(1);
 
-  if (!caseData) return null;
-
-  const fileNumber = caseData.fileNumber || 'FILE 001';
-
-  const killerPlayer = state.players.find((p) => p.role === 'killer');
-  const killerCharacter =
-    caseData.allCharacters.find((c) => c.id === killerPlayer?.characterId) ||
-    caseData.allCharacters[0];
-
   const innocentsWon =
     state.gameWinner === 'innocents' ||
     state.players.some((p) => p.isJailed && p.role === 'killer');
@@ -51,6 +42,16 @@ export const EndingRevealScreen: React.FC = () => {
       markCaseAsSolved(caseData.id);
     }
   }, [innocentsWon, caseData?.id]);
+
+  // Must stay below all hooks: resetGame() clears caseData while this screen is still mounted
+  if (!caseData) return null;
+
+  const fileNumber = caseData.fileNumber || 'FILE 001';
+
+  const killerPlayer = state.players.find((p) => p.role === 'killer');
+  const killerCharacter =
+    caseData.allCharacters.find((c) => c.id === killerPlayer?.characterId) ||
+    caseData.allCharacters[0];
 
   const advanceStage = () => {
     soundEngine.playGavelStrike();
