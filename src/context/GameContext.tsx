@@ -3,7 +3,7 @@
  * Global State Context & Controller
  */
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import {
   GameState,
   GameScreen,
@@ -67,6 +67,7 @@ const initialGameState: GameState = {
 const GameContext = createContext<GameContextType | undefined>(undefined);
 
 const STORAGE_KEY = 'CRIME_ACTIVE_INVESTIGATION_STATE';
+const SETTINGS_STORAGE_KEY = 'CRIME_GAME_SETTINGS';
 
 export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [state, setState] = useState<GameState>(() => {
@@ -84,7 +85,24 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return initialGameState;
   });
 
-  const [settings, setSettings] = useState<GameSettings>(DEFAULT_GAME_SETTINGS);
+  // Always read the latest committed state inside deferred callbacks (e.g. the
+  // vote-counting timeout in VotingScreen), never a stale render closure.
+  const stateRef = useRef(state);
+  useEffect(() => {
+    stateRef.current = state;
+  }, [state]);
+
+  const [settings, setSettings] = useState<GameSettings>(() => {
+    try {
+      const saved = localStorage.getItem(SETTINGS_STORAGE_KEY);
+      if (saved) {
+        return { ...DEFAULT_GAME_SETTINGS, ...JSON.parse(saved) };
+      }
+    } catch (e) {
+      console.error('Failed to restore saved settings', e);
+    }
+    return DEFAULT_GAME_SETTINGS;
+  });
   const [selectedCaseForGame, setSelectedCaseForGame] = useState<CaseModel | null>(null);
   const [playerNames, setPlayerNames] = useState<string[]>(() => {
     if (state.players && state.players.length > 0) {
@@ -102,6 +120,11 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     soundEngine.setMuted(!settings.soundEnabled);
     soundEngine.setVolume(settings.masterVolume);
+    try {
+      localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settings));
+    } catch (e) {
+      console.error('Failed to save settings', e);
+    }
   }, [settings]);
 
   // Persist current active investigation state to LocalStorage
@@ -229,7 +252,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const processRoundVotingResults = (): { jailedPlayer: PlayerSession | null; tie: boolean } => {
     soundEngine.playJailSlam();
-    const votes = state.roundState.votesInCurrentRound;
+    const currentState = stateRef.current;
+    const votes = currentState.roundState.votesInCurrentRound;
     const voteCounts: Record<string, number> = {};
 
     votes.forEach((v) => {
@@ -253,7 +277,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     let jailedPlayer: PlayerSession | null = null;
 
     if (jailedId && !tie) {
-      jailedPlayer = state.players.find((p) => p.id === jailedId) || null;
+      jailedPlayer = currentState.players.find((p) => p.id === jailedId) || null;
     }
 
     setState((prev) => {
@@ -276,7 +300,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         gameWinner: winner,
         roundState: {
           ...prev.roundState,
-          jailedPlayerThisRoundId: jailedId,
+          jailedPlayerThisRoundId: jailedId && !tie ? jailedId : null,
         },
       };
     });
