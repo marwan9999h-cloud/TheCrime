@@ -333,6 +333,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     soundEngine.playClick();
     try {
       localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem('CRIME_DISCUSSION_TIMER');
     } catch (e) {
       console.error('Failed to clear stored session', e);
     }
