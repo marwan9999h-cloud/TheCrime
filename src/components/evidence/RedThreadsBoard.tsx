@@ -26,15 +26,9 @@ export const RedThreadsBoard: React.FC<RedThreadsBoardProps> = ({
     unlockedEvidence.length > 0 ? unlockedEvidence[0].id : null
   );
 
+  // Notes are player-editable only; no case-specific defaults are seeded here,
+  // otherwise one case's detective notes leak into every other case.
   const [activeNotes, setActiveNotes] = useState<Record<string, string>>({
-    ev_01_autopsy_report: 'ملاحظة المحقق: السم سريع المفعول، يجب حصر من اقترب من الكأس قبل ١١:٠٠ م.',
-    ev_02_will_fragment: 'ملاحظة المحقق: مسودة الوصية تثبت وجود حرمان لوريث أساسي!',
-    ev_03_hallway_cctv: 'ملاحظة المحقق: طارق ومستشار طاهر كانا بالأقرب للممر.',
-    ev_04_audio_wiretap: 'ملاحظة المحقق: التهديد المباشر جاء بصوت نبرة حادة.',
-    ev_05_poison_vial: 'ملاحظة المحقق: العبوة تطابق مستلزمات المعمل الطبي.',
-    ev_06_bank_transfer: 'ملاحظة المحقق: التحويل البنكي يثبت وجود ديون سريّة.',
-    ev_07_final_confession_letter: 'ملاحظة المحقق: الضحية أعد الخطة لاختبار الأمانة.',
-    ev_08_glass_fingerprints: 'ملاحظة المحقق: طارق هو من لمس مقبض الكأس.',
     ...notesRecord,
   });
 
@@ -67,7 +61,7 @@ export const RedThreadsBoard: React.FC<RedThreadsBoardProps> = ({
         {/* Left Column: Suspect Cards pinned to cork board */}
         <div className="lg:col-span-4 space-y-3">
           <h4 className="text-xs font-mono font-bold text-zinc-400 uppercase tracking-widest border-b border-zinc-800 pb-2 flex items-center justify-between">
-            <span>المشتبه بهم الخمسة</span>
+            <span>المشتبه بهم ({characters.length})</span>
             <span className="text-red-500 font-bold">● دبابيس الربط</span>
           </h4>
 
