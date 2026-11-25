@@ -7,7 +7,6 @@ import React, { useState } from 'react';
 import { useGame } from '../../context/GameContext';
 import { Settings, Volume2, VolumeX, RotateCcw } from 'lucide-react';
 import { soundEngine } from '../../utils/soundEngine';
-import logoImg from '../../assets/images/crime_shield_logo_1785960331637.jpg';
 
 export const Header: React.FC = () => {
   const { state, settings, setScreen, updateSettings, resetGame } = useGame();
@@ -38,7 +37,7 @@ export const Header: React.FC = () => {
           <div className="w-8 h-8 rounded-md overflow-hidden border border-rose-500/30 bg-rose-950/30 flex items-center justify-center shrink-0 shadow-sm group-hover:border-rose-500/50 transition-colors">
             {!logoError ? (
               <img
-                src={logoImg}
+                src="/favicon-192.png"
                 alt="CRIME"
                 className="w-full h-full object-cover grayscale contrast-125 opacity-90 group-hover:opacity-100 transition-opacity"
                 onError={() => setLogoError(true)}
