@@ -5,9 +5,9 @@
 
 import React, { useState } from 'react';
 import { useGame } from '../context/GameContext';
-import { CaseModel } from '../types/game';
+import { CaseMeta, CaseModel } from '../types/game';
 import { SeasonModel } from '../types/seasons';
-import { getCasesBySeason } from '../data/cases';
+import { getCaseMetasBySeason, loadCaseById } from '../data/cases';
 import { OFFICIAL_SEASONS } from '../data/seasons';
 import { isCaseSolved } from '../utils/completedCases';
 import { soundEngine } from '../utils/soundEngine';
@@ -65,39 +65,47 @@ export const Season1Cases: React.FC<Season1CasesProps> = ({ onSelectCaseForGame,
   const { setScreen } = useGame();
   const [expandedSeasonId, setExpandedSeasonId] = useState<string>('season_1');
   const [selectedSeasonTab, setSelectedSeasonTab] = useState<'murder' | 'theft'>('murder');
-  const [selectedCaseModal, setSelectedCaseModal] = useState<CaseModel | null>(null);
+  const [selectedCaseModal, setSelectedCaseModal] = useState<CaseMeta | null>(null);
   const [lockedSeasonModal, setLockedSeasonModal] = useState<SeasonModel | null>(null);
+  const [launchingCaseId, setLaunchingCaseId] = useState<string | null>(null);
 
-  const season1Cases = getCasesBySeason('murder');
-  const season2Cases = getCasesBySeason('theft');
+  const season1Cases = getCaseMetasBySeason('murder');
+  const season2Cases = getCaseMetasBySeason('theft');
 
   const toggleSeason = (seasonId: string) => {
     soundEngine.playClick();
     setExpandedSeasonId((prev) => (prev === seasonId ? '' : seasonId));
   };
 
-  const handleLaunchCase = (caseModel: CaseModel) => {
-    if (caseModel.isLocked) return;
+  const handleLaunchCase = async (caseMeta: CaseMeta) => {
+    if (caseMeta.isLocked || launchingCaseId) return;
     soundEngine.playTypewriterKey();
     setSelectedCaseModal(null);
-    if (onSelectCaseForGame) {
-      onSelectCaseForGame(caseModel);
-    } else {
+    if (!onSelectCaseForGame) {
       setScreen('player_setup');
+      return;
+    }
+    // The full case package is code-split; load it on demand, then launch.
+    setLaunchingCaseId(caseMeta.id);
+    try {
+      const fullCase = await loadCaseById(caseMeta.id);
+      if (fullCase) onSelectCaseForGame(fullCase);
+    } finally {
+      setLaunchingCaseId(null);
     }
   };
 
-  const handleCardClick = (caseModel: CaseModel) => {
+  const handleCardClick = (caseMeta: CaseMeta) => {
     if (isArchive) {
       soundEngine.playClick();
-      setSelectedCaseModal(caseModel);
+      setSelectedCaseModal(caseMeta);
     } else {
-      handleLaunchCase(caseModel);
+      handleLaunchCase(caseMeta);
     }
   };
 
   // Reusable Case File Record List
-  const renderCaseList = (cases: CaseModel[]) => (
+  const renderCaseList = (cases: CaseMeta[]) => (
     <div className="flex flex-col gap-3 w-full">
       {cases.map((caseModel, index) => {
         const diffInfo = getDifficultyBadge(caseModel.difficulty);
