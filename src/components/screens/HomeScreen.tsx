@@ -166,6 +166,9 @@ export const HomeScreen: React.FC = () => {
       <div className="mt-8 pt-4 border-t border-white/[0.06] w-full text-center text-xs text-zinc-500">
         جميع جلسات التحقيق تُحفظ وتُدار محلياً على جهازك
       </div>
+      <div dir="ltr" className="mt-3 w-full text-center text-[11px] font-mono tracking-[0.18em] text-rose-400/60 select-none">
+        By : Marwan M. Hammad
+      </div>
     </div>
   );
 };
