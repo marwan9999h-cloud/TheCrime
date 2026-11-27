@@ -6,7 +6,7 @@
 
 import React from 'react';
 import { OFFICIAL_SEASONS } from '../../data/seasons';
-import { getCasesBySeason } from '../../data/cases';
+import { getCaseMetasBySeason } from '../../data/cases';
 import { Lock, Sparkles, CheckCircle2 } from 'lucide-react';
 import { SeasonModel } from '../../types/seasons';
 
@@ -28,7 +28,7 @@ export const SeasonSelector: React.FC<SeasonSelectorProps> = ({
       <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 ${className}`}>
         {OFFICIAL_SEASONS.map((season: SeasonModel) => {
           const isSelected = selectedSeasonId === season.id;
-          const cases = getCasesBySeason(season.categoryKey);
+          const cases = getCaseMetasBySeason(season.categoryKey);
 
           return (
             <div
