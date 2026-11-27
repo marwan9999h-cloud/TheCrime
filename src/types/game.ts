@@ -150,6 +150,18 @@ export interface CaseModel {
   isLocked?: boolean;
 }
 
+/** Lightweight case info for browsing lists; the full CaseModel is lazy-loaded on launch. */
+export interface CaseMeta {
+  id: string;
+  fileNumber: string;
+  seasonCategory?: string;
+  title: Record<Language, string>;
+  tagline: Record<Language, string>;
+  difficulty: DifficultyLevel;
+  estimatedMinutes: number;
+  isLocked?: boolean;
+}
+
 export interface PlayerSession {
   id: string;
   seatNumber: number;
