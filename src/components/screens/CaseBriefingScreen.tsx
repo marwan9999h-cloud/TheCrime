@@ -5,7 +5,7 @@
 
 import React from 'react';
 import { useGame } from '../../context/GameContext';
-import { case001Package } from '../../data/cases/packages/case001';
+import { useResolvedCase } from './useResolvedCase';
 import { getDifficultyBadge } from '../Season1Cases';
 import { soundEngine } from '../../utils/soundEngine';
 import { ArrowRight, Play, ShieldAlert, Users, Clock } from 'lucide-react';
@@ -14,12 +14,20 @@ import { DossierHeader } from '../dossier/DossierComponents';
 export const CaseBriefingScreen: React.FC = () => {
   const {
     setScreen,
-    selectedCaseForGame,
     playerNames,
     startInvestigation,
   } = useGame();
 
-  const caseModel = selectedCaseForGame || case001Package;
+  const caseModel = useResolvedCase();
+
+  if (!caseModel) {
+    return (
+      <div className="flex-1 flex items-center justify-center text-zinc-400 font-sans text-sm">
+        جاري تحميل ملف القضية...
+      </div>
+    );
+  }
+
   const diffInfo = getDifficultyBadge(caseModel.difficulty);
   const fileNumber = caseModel.fileNumber || 'FILE 001';
 
