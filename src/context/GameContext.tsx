@@ -17,7 +17,6 @@ import {
 import { DEFAULT_GAME_SETTINGS } from '../config/constants';
 import { soundEngine } from '../utils/soundEngine';
 
-import { case001Package } from '../data/cases/packages/case001';
 import { generateSessionForCase } from '../data/cases/caseEngine';
 
 interface GameContextType {
