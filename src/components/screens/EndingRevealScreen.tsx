@@ -17,6 +17,7 @@ import {
   ChevronDown,
   Sparkles,
   Share2,
+  Crosshair,
 } from 'lucide-react';
 import { shareCrimeResult } from '../../utils/shareCard';
 import { motion, AnimatePresence } from 'motion/react';
@@ -26,13 +27,14 @@ export const EndingRevealScreen: React.FC = () => {
   const { state, resetGame, setScreen } = useGame();
   const caseData = state.caseData;
 
-  // Track the progressive reveal stages (1 to 6)
+  // Track the progressive reveal stages (1 to 7)
   // Stage 1: Case Status
   // Stage 2: The Truth (Motive, Execution, Flaw)
   // Stage 3: The Killer Final Identification
   // Stage 4: Case Reconstruction Timeline
   // Stage 5: Suspect Classified Records / Secrets
-  // Stage 6: Performance Report & Archive Actions
+  // Stage 6: Detective Scores (who voted for the real killer)
+  // Stage 7: Performance Report & Archive Actions
   const [currentStage, setCurrentStage] = useState<number>(1);
   const [isSharing, setIsSharing] = useState<boolean>(false);
 
@@ -58,7 +60,7 @@ export const EndingRevealScreen: React.FC = () => {
 
   const advanceStage = () => {
     soundEngine.playGavelStrike();
-    setCurrentStage((prev) => Math.min(prev + 1, 6));
+    setCurrentStage((prev) => Math.min(prev + 1, 7));
   };
 
   // Performance Rating Logic
@@ -77,6 +79,14 @@ export const EndingRevealScreen: React.FC = () => {
       ? 'محقق أسطوري // RANK S'
       : 'محقق خبير // RANK A'
     : 'مساعد محقق // RANK D';
+
+  // Final secret ballot: who pointed at the real killer? (Votes of the
+  // decisive round are still in roundState when the game ends.)
+  const finalVotes = state.roundState.votesInCurrentRound;
+  const sharpDetectives = finalVotes
+    .filter((v) => v.suspectPlayerId === killerPlayer?.id)
+    .map((v) => state.players.find((p) => p.id === v.voterPlayerId)?.displayName)
+    .filter((name): name is string => Boolean(name));
 
   const handleShareResult = async () => {
     if (isSharing) return;
@@ -404,7 +414,7 @@ export const EndingRevealScreen: React.FC = () => {
         )}
 
         {/* ========================================================================= */}
-        {/* STAGE 06 — INVESTIGATION PERFORMANCE */}
+        {/* STAGE 06 — DETECTIVE SCORES */}
         {/* ========================================================================= */}
         {currentStage >= 6 && (
           <motion.section
@@ -414,7 +424,105 @@ export const EndingRevealScreen: React.FC = () => {
             className="border border-zinc-800/90 bg-zinc-900/30 p-5 rounded-sm space-y-4 font-sans"
           >
             <div className="flex items-center justify-between border-b border-zinc-800/80 pb-2 font-mono text-[10px] text-zinc-500 uppercase tracking-widest">
-              <span>STAGE 06 // INVESTIGATION PERFORMANCE</span>
+              <span>STAGE 06 // DETECTIVE SCORES</span>
+              <span className="text-zinc-400 font-bold">FINAL BALLOT</span>
+            </div>
+
+            <div className="space-y-1">
+              <span className="font-mono text-[10px] uppercase tracking-widest text-zinc-500 block">
+                WHO CAUGHT THE KILLER
+              </span>
+              <h3 className="font-heading font-bold text-xl text-zinc-100">
+                كشف حساب المحققين
+              </h3>
+              <p className="text-xs text-zinc-400 leading-relaxed">
+                التصويت السري الحاسم: من وجّه اتهامه نحو القاتل الحقيقي؟
+              </p>
+            </div>
+
+            {sharpDetectives.length > 0 && (
+              <div className="flex items-center gap-2 border border-amber-500/40 bg-amber-950/20 rounded-sm px-3 py-2.5">
+                <Crosshair className="w-4 h-4 text-amber-400 shrink-0" />
+                <span className="text-sm font-bold text-amber-300">
+                  عين الصقر: {sharpDetectives.join('، ')}
+                </span>
+              </div>
+            )}
+
+            <div className="space-y-2">
+              {state.players.map((player, seatIndex) => {
+                const vote = finalVotes.find((v) => v.voterPlayerId === player.id);
+                const suspect = vote
+                  ? state.players.find((p) => p.id === vote.suspectPlayerId)
+                  : undefined;
+                const suspectCharacter = suspect
+                  ? caseData.allCharacters.find((c) => c.id === suspect.characterId)
+                  : undefined;
+                const hit = !!vote && vote.suspectPlayerId === killerPlayer?.id;
+
+                return (
+                  <div
+                    key={player.id}
+                    className={`flex items-center justify-between gap-3 border rounded-sm px-3 py-2.5 ${
+                      hit
+                        ? 'border-emerald-500/40 bg-emerald-950/20'
+                        : 'border-zinc-800 bg-zinc-950/60'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <span className="font-mono text-[10px] text-zinc-500 shrink-0">
+                        0{seatIndex + 1}
+                      </span>
+                      <div className="min-w-0">
+                        <span className="font-bold text-sm text-zinc-100 block truncate">
+                          {player.displayName}
+                        </span>
+                        {vote && suspect && (
+                          <span className="text-[11px] text-zinc-400 block truncate">
+                            اتهم: {suspect.displayName}
+                            {suspectCharacter ? ` (${suspectCharacter.name.ar})` : ''}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {player.isJailed && !vote ? (
+                      <span className="shrink-0 text-[11px] font-bold text-rose-300 bg-rose-950/40 border border-rose-500/30 px-2 py-0.5 rounded-md">
+                        خلف القضبان
+                      </span>
+                    ) : hit ? (
+                      <span className="shrink-0 flex items-center gap-1 text-[11px] font-bold text-emerald-300 bg-emerald-950/40 border border-emerald-500/30 px-2 py-0.5 rounded-md">
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        <span>أصاب الهدف</span>
+                      </span>
+                    ) : vote ? (
+                      <span className="shrink-0 text-[11px] font-bold text-zinc-400 bg-zinc-900 border border-zinc-700 px-2 py-0.5 rounded-md">
+                        أخطأ الهدف
+                      </span>
+                    ) : (
+                      <span className="shrink-0 text-[11px] font-bold text-zinc-500 bg-zinc-900 border border-zinc-800 px-2 py-0.5 rounded-md">
+                        لم يصوّت
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </motion.section>
+        )}
+
+        {/* ========================================================================= */}
+        {/* STAGE 07 — INVESTIGATION PERFORMANCE */}
+        {/* ========================================================================= */}
+        {currentStage >= 7 && (
+          <motion.section
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            className="border border-zinc-800/90 bg-zinc-900/30 p-5 rounded-sm space-y-4 font-sans"
+          >
+            <div className="flex items-center justify-between border-b border-zinc-800/80 pb-2 font-mono text-[10px] text-zinc-500 uppercase tracking-widest">
+              <span>STAGE 07 // INVESTIGATION PERFORMANCE</span>
               <span className="text-zinc-400 font-bold">FINAL METRICS</span>
             </div>
 
@@ -520,7 +628,7 @@ export const EndingRevealScreen: React.FC = () => {
         {/* PROGRESSION ACTION OR FINAL ARCHIVE ACTIONS */}
         {/* ========================================================================= */}
         <div className="pt-2 border-t border-white/[0.08] space-y-3">
-          {currentStage < 6 ? (
+          {currentStage < 7 ? (
             <button
               type="button"
               onClick={advanceStage}
@@ -531,7 +639,8 @@ export const EndingRevealScreen: React.FC = () => {
                 {currentStage === 2 && 'المتابعة: الكشف النهائي عن الجاني'}
                 {currentStage === 3 && 'المتابعة: إعادة بناء الأحداث والخط الزمني'}
                 {currentStage === 4 && 'المتابعة: كشف أسرار جميع المشتبه بهم'}
-                {currentStage === 5 && 'المتابعة: تقييم أداء فريق التحقيق'}
+                {currentStage === 5 && 'المتابعة: كشف حساب المحققين'}
+                {currentStage === 6 && 'المتابعة: تقييم أداء فريق التحقيق'}
               </span>
               <ArrowLeft className="w-4 h-4 text-white" />
             </button>
