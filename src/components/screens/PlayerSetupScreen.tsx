@@ -5,7 +5,7 @@
 
 import React, { useState } from 'react';
 import { useGame } from '../../context/GameContext';
-import { case001Package } from '../../data/cases/packages/case001';
+import { useResolvedCase } from './useResolvedCase';
 import { ArrowRight, Check } from 'lucide-react';
 import { soundEngine } from '../../utils/soundEngine';
 import { motion } from 'motion/react';
@@ -13,12 +13,11 @@ import { motion } from 'motion/react';
 export const PlayerSetupScreen: React.FC = () => {
   const {
     setScreen,
-    selectedCaseForGame,
     playerNames: initialNames,
     setPlayerNamesAndChooseCase,
   } = useGame();
 
-  const caseModel = selectedCaseForGame || case001Package;
+  const caseModel = useResolvedCase();
   const totalPlayers = 4;
   const defaultPlayerNames = ['لاعب 1', 'لاعب 2', 'لاعب 3', 'لاعب 4'];
 
@@ -41,6 +40,14 @@ export const PlayerSetupScreen: React.FC = () => {
     setPlayerNamesAndChooseCase(names.map((n) => n.trim()));
     setScreen('case_briefing');
   };
+
+  if (!caseModel) {
+    return (
+      <div className="flex-1 flex items-center justify-center text-zinc-400 font-sans text-sm">
+        جاري تحميل ملف القضية...
+      </div>
+    );
+  }
 
   const fileNumber = caseModel.fileNumber || 'FILE 001';
 
