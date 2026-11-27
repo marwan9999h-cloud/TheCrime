@@ -16,7 +16,9 @@ import {
   ArrowLeft,
   ChevronDown,
   Sparkles,
+  Share2,
 } from 'lucide-react';
+import { shareCrimeResult } from '../../utils/shareCard';
 import { motion, AnimatePresence } from 'motion/react';
 import { DossierHeader } from '../dossier/DossierComponents';
 
@@ -32,6 +34,7 @@ export const EndingRevealScreen: React.FC = () => {
   // Stage 5: Suspect Classified Records / Secrets
   // Stage 6: Performance Report & Archive Actions
   const [currentStage, setCurrentStage] = useState<number>(1);
+  const [isSharing, setIsSharing] = useState<boolean>(false);
 
   const innocentsWon =
     state.gameWinner === 'innocents' ||
@@ -74,6 +77,29 @@ export const EndingRevealScreen: React.FC = () => {
       ? 'محقق أسطوري // RANK S'
       : 'محقق خبير // RANK A'
     : 'مساعد محقق // RANK D';
+
+  const handleShareResult = async () => {
+    if (isSharing) return;
+    setIsSharing(true);
+    soundEngine.playClick();
+    try {
+      await shareCrimeResult({
+        fileNumber,
+        caseTitleAr: caseData.title?.ar || '',
+        innocentsWon,
+        detectiveRank,
+        teamRating,
+        roundsPlayed: state.roundState.currentRound,
+        totalRounds: state.roundState.totalRounds,
+        innocentsJailed: innocentJailedCount,
+        playersCount: state.players.length,
+      });
+    } catch {
+      // User dismissed the share sheet or the encode failed; nothing to recover.
+    } finally {
+      setIsSharing(false);
+    }
+  };
 
   return (
     <div className="flex-1 flex flex-col max-w-2xl mx-auto w-full py-6 px-4 space-y-6 text-right font-sans select-none">
@@ -514,6 +540,16 @@ export const EndingRevealScreen: React.FC = () => {
               <div className="text-center text-xs text-zinc-400 font-sans py-1">
                 تم توثيق القضية وأرشفة التقرير الجنائي بنجاح
               </div>
+
+              <button
+                type="button"
+                onClick={handleShareResult}
+                disabled={isSharing}
+                className="w-full py-4 px-6 rounded-xl bg-rose-600 hover:bg-rose-500 active:bg-rose-700 text-white font-sans text-sm font-bold tracking-wide transition-all duration-150 flex items-center justify-center gap-2 border border-rose-500 cursor-pointer shadow-lg shadow-rose-950/40 active:scale-[0.99] disabled:opacity-60 disabled:cursor-wait"
+              >
+                <Share2 className="w-4 h-4 text-white" />
+                <span>{isSharing ? 'جاري تجهيز بطاقة النتيجة...' : 'شارك نتيجة التحقيق'}</span>
+              </button>
 
               <div className="flex flex-col sm:flex-row gap-2.5">
                 <button
